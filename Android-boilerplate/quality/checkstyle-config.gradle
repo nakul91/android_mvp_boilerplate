@@ -1,0 +1,38 @@
+apply plugin: 'checkstyle'
+
+task checkstyle(type: Checkstyle) {
+    group 'Verification'
+    description 'Runs checkstyle on all variants'
+    configFile file("${project.rootDir}/quality/checkstyle-rules.xml")
+
+    source 'src'
+
+    include '**/*.java'
+    exclude '**/test/**'
+    exclude '**/androidTest/**'
+    exclude '**/gen/**'
+
+    ignoreFailures = false
+    classpath = files()
+
+    reports.xml.enabled false
+    reports.html.enabled true
+    reports.html.stylesheet resources.text.fromFile("${project.rootDir}/quality/checkstyle-simple.xsl")
+}
+
+tasks.withType(Checkstyle).each { checkstyleTask ->
+    checkstyleTask.doLast {
+        reports.all { report ->
+            def outputFile = report.destination
+            if (outputFile.exists() && outputFile.text.contains("<error ")) {
+                throw new GradleException("There were checkstyle warnings! For more info check $outputFile")
+            }
+        }
+    }
+    check.dependsOn checkstyleTask
+    connectedCheck.dependsOn checkstyleTask
+}
+
+checkstyle {
+    toolVersion = "8.4"
+}

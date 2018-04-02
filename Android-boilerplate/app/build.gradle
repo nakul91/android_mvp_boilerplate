@@ -1,0 +1,102 @@
+buildscript {
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.+'
+    }
+    repositories {
+        maven { url 'https://maven.fabric.io/public' }
+    }
+}
+
+repositories {
+    maven { url 'https://maven.fabric.io/public' }
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
+apply plugin: 'net.ltgt.errorprone'
+
+apply from: "../quality/checkstyle-config.gradle"
+
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
+
+    defaultConfig {
+        applicationId "com.companyname"
+        minSdkVersion 20
+        targetSdkVersion 26
+        versionCode 4
+        versionName "1.0"
+        multiDexEnabled true
+    }
+    buildTypes {
+        debug {
+            ext.enableCrashlytics = false   // for Crashlytics
+            ext.alwaysUpdateBuildId = false // for Crashlytics
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
+
+    lintOptions {
+        lintConfig file("$project.rootDir/quality/lint.xml")
+        warningsAsErrors true
+        abortOnError true
+        xmlReport false
+    }
+}
+
+ext.deps = [
+        supportlibrary: '25.4.0',
+        dagger        : '2.12',
+        butterknife   : '8.8.1',
+        retrofit      : '2.2.0',
+]
+
+dependencies {
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+
+    compile('com.crashlytics.sdk.android:crashlytics:2.8.0@aar') {
+        transitive = true
+    }
+
+    annotationProcessor(
+            "com.google.dagger:dagger-compiler:$deps.dagger",
+            "com.jakewharton:butterknife-compiler:$deps.butterknife",
+    )
+
+    implementation(
+             'io.reactivex.rxjava2:rxandroid:2.0.2',
+            "com.android.support:appcompat-v7:$deps.supportlibrary",
+            "com.android.support:cardview-v7:$deps.supportlibrary",
+            "com.android.support:design:$deps.supportlibrary",
+            "com.android.support:support-v4:$deps.supportlibrary",
+            "com.android.support.constraint:constraint-layout:1.0.2",
+
+            "com.squareup.retrofit2:retrofit:$deps.retrofit",
+            "com.squareup.retrofit2:converter-gson:$deps.retrofit",
+
+            "com.google.dagger:dagger:$deps.dagger",
+            "com.jakewharton:butterknife:$deps.butterknife",
+            "com.google.code.gson:gson:2.8.0",
+            "com.google.firebase:firebase-messaging:11.8.0",
+            "com.jakewharton.timber:timber:4.6.0"
+    )
+
+    errorprone 'com.google.errorprone:error_prone_core:2.1.3'
+}
+
